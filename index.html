@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chosen Cash Giveaway</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+/* Base Theme - Bright Giveaway */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+    color: #fff;
+    text-align: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.container {
+    background: rgba(0,0,0,0.7);
+    padding: 50px;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 0 40px rgba(255,255,255,0.4);
+}
+
+h1 {
+    font-family: 'Anton', sans-serif;
+    font-size: 3em;
+    margin-bottom: 20px;
+    color: #ffea00;
+    text-shadow: 2px 2px #000;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="text"], input[type="email"] {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: none;
+    font-size: 1em;
+}
+
+input[type="submit"] {
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1.3em;
+    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255,65,108,0.7);
+    transition: all 0.3s ease;
+}
+
+input[type="submit"]:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255,65,108,1);
+}
+
+/* Glitch Overlay */
+#glitch {
+    position: fixed;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+    display: none;
+    background: black;
+    overflow: hidden;
+}
+
+.glitch-line {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: red;
+    animation: glitchAnim 0.1s infinite;
+    mix-blend-mode: difference;
+}
+
+@keyframes glitchAnim {
+    0% { transform: translateX(0) skewX(0deg); }
+    25% { transform: translateX(-20px) skewX(10deg); }
+    50% { transform: translateX(20px) skewX(-10deg); }
+    75% { transform: translateX(-10px) skewX(5deg); }
+    100% { transform: translateX(0) skewX(0deg); }
+}
+
+/* Slideshow */
+#slideshow {
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    display:none;
+    z-index:1000;
+    background:black;
+}
+
+#slideshow img {
+    width:100%;
+    height:100%;
+    object-fit: cover;
+    position:absolute;
+    top:0;
+    left:0;
+    opacity:0;
+    transition: opacity 1s ease-in-out;
+}
+
+/* Dialog text */
+#dialog {
+    position: absolute;
+    bottom: 10%;
+    width: 100%;
+    text-align: center;
+    font-size: 2em;
+    color: red;
+    text-shadow: 2px 2px black;
+    display:none;
+    z-index: 1100;
+    font-family: 'Anton', sans-serif;
+}
+</style>
+</head>
+<body>
+<div class="container" id="formContainer">
+    <h1>🌟 Chosen Cash Giveaway 🌟</h1>
+    <p>💸 Only the <strong>chosen one</strong> will claim <strong>$500 in cash</strong> today!<br>
+    Do you feel the pull of destiny? Hurry — time is limited!</p>
+
+    <form id="giveawayForm">
+        <input type="text" name="name" placeholder="Your Full Name" required>
+        <input type="email" name="email" placeholder="Your Email Address" required>
+        <input type="submit" value="Claim My $500 Now!">
+    </form>
+</div>
+
+<div id="glitch"></div>
+<div id="slideshow">
+    <img src="image1.jpg" alt="slide1">
+    <img src="image2.jpg" alt="slide2">
+    <img src="image3.jpg" alt="slide3">
+</div>
+<div id="dialog">He knows what you did...</div>
+
+<script>
+document.getElementById('giveawayForm').addEventListener('submit', function(e){
+    e.preventDefault();
+
+    // Hide form
+    document.getElementById('formContainer').style.display = 'none';
+
+    // Turn background black
+    document.body.style.background = 'black';
+
+    // Show glitch
+    const glitch = document.getElementById('glitch');
+    glitch.style.display = 'block';
+
+    // Add colorful glitch lines
+    for(let i=0;i<80;i++){
+        const line = document.createElement('div');
+        line.className='glitch-line';
+        line.style.top = Math.random() * window.innerHeight + 'px';
+        line.style.width = Math.random()*100+'%';
+        line.style.background = `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
+        glitch.appendChild(line);
+    }
+
+    // Stop glitch after 3 seconds
+    setTimeout(() => {
+        glitch.style.display = 'none';
+
+        // Show slideshow
+        const slideshow = document.getElementById('slideshow');
+        slideshow.style.display = 'block';
+        const slides = slideshow.querySelectorAll('img');
+        let current = 0;
+        slides[current].style.opacity = 1;
+
+        // Show dialog
+        const dialog = document.getElementById('dialog');
+        dialog.style.display = 'block';
+
+        // Cycle images
+        setInterval(()=>{
+            slides[current].style.opacity = 0;
+            current = (current + 1) % slides.length;
+            slides[current].style.opacity = 1;
+        }, 2500);
+
+    }, 3000);
+});
+</script>
+</body>
+</html>
