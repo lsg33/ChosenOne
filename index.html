@@ -117,20 +117,23 @@ mix-blend-mode:difference;
 position:fixed;
 top:0;
 left:0;
-width:100vw;
-height:100vh;
+width:100%;
+height:100%;
 display:none;
 background:black;
 z-index:1000;
+overflow:hidden;
 }
 
 #slideshow img{
-width:100vw;
-height:100vh;
-object-fit:cover;
 position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+object-fit:cover;
 opacity:0;
-transition:opacity 1s;
+transition:opacity 1s ease;
 }
 
 #dialog{
@@ -194,28 +197,58 @@ Thousands entered today… but <strong>only one</strong> will be chosen.
 
 <script>
 
+const storedName = localStorage.getItem("chosenName")
+
 if(localStorage.getItem("chosenSeen") === "true"){
 
-document.getElementById("mainText").innerHTML = `
-Entries are selected randomly each day for the $500 reward.<br><br>
-Unfortunately your entry has already been processed and you are
-<strong>not eligible</strong> to enter again today.<br><br>
-Please come back another time if the system allows it.
-`;
+const messages = [
 
-document.getElementById("nameInput").disabled = true;
-document.getElementById("emailInput").disabled = true;
-document.getElementById("submitBtn").disabled = true;
+`Today's entries have already been processed.<br><br>
+<strong>${storedName}</strong>, our system shows that you have already submitted an entry.<br><br>
+Unfortunately this makes you <strong>ineligible</strong> to participate again today.`,
 
-document.getElementById("nameInput").classList.add("disabled");
-document.getElementById("emailInput").classList.add("disabled");
-document.getElementById("submitBtn").classList.add("disabled");
+`The giveaway entry window has closed.<br><br>
+<strong>${storedName}</strong>, our records indicate that you have already attempted to enter.<br><br>
+Multiple submissions are not permitted.`,
+
+`Entry verification completed.<br><br>
+<strong>${storedName}</strong> has already been logged in the system.<br><br>
+Further entries are not allowed.`,
+
+`The system remembers your entry.<br><br>
+<strong>${storedName}</strong> has already tried to participate.<br><br>
+Please do not attempt another submission.`,
+
+`All entries are monitored and verified.<br><br>
+<strong>${storedName}</strong> has already been processed today.<br><br>
+Additional attempts are not permitted.`
+
+]
+
+const randomMessage = messages[Math.floor(Math.random()*messages.length)]
+
+document.getElementById("mainText").innerHTML = randomMessage
+
+document.getElementById("nameInput").disabled = true
+document.getElementById("emailInput").disabled = true
+document.getElementById("submitBtn").disabled = true
+
+document.getElementById("nameInput").classList.add("disabled")
+document.getElementById("emailInput").classList.add("disabled")
+document.getElementById("submitBtn").classList.add("disabled")
 
 }
 
-const playerName = document.getElementById("nameInput").value;
+document.getElementById("giveawayForm").addEventListener("submit", function(e){
+
+e.preventDefault()
+
+const playerName = document.getElementById("nameInput").value
+
+localStorage.setItem("chosenName", playerName)
 
 const creepyLines = [
+
 "processing entry...",
 "checking eligibility...",
 "...",
@@ -232,62 +265,63 @@ const creepyLines = [
 "he already chose you",
 `he knows what you did, ${playerName}`,
 "he remembers everything"
-];
 
-document.getElementById("giveawayForm").addEventListener("submit", function(e){
+]
 
-e.preventDefault();
+document.getElementById("formContainer").style.display = "none"
+document.body.style.background = "black"
 
-document.getElementById("formContainer").style.display = "none";
-document.body.style.background = "black";
-
-const glitch = document.getElementById("glitch");
-glitch.style.display = "block";
+const glitch = document.getElementById("glitch")
+glitch.style.display = "block"
 
 for(let i=0;i<100;i++){
-const line = document.createElement("div");
-line.className="glitch-line";
-line.style.top=Math.random()*window.innerHeight+"px";
-line.style.width=Math.random()*100+"%";
-line.style.background=`rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`;
-glitch.appendChild(line);
+
+const line = document.createElement("div")
+
+line.className="glitch-line"
+line.style.top=Math.random()*window.innerHeight+"px"
+line.style.width=Math.random()*100+"%"
+line.style.background=`rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`
+
+glitch.appendChild(line)
+
 }
 
-setTimeout(startSequence,3000);
+setTimeout(()=>startSequence(creepyLines, playerName),3000)
 
-});
+})
 
-async function startSequence(){
+async function startSequence(creepyLines, playerName){
 
-document.getElementById("glitch").style.display="none";
+document.getElementById("glitch").style.display="none"
 
-const slideshow = document.getElementById("slideshow");
-const slides = slideshow.querySelectorAll("img");
-const dialog = document.getElementById("dialog");
+const slideshow = document.getElementById("slideshow")
+const slides = slideshow.querySelectorAll("img")
+const dialog = document.getElementById("dialog")
 
-slideshow.style.display="block";
-dialog.style.display="block";
+slideshow.style.display="block"
+dialog.style.display="block"
 
 for(let i=0;i<creepyLines.length;i++){
 
-dialog.textContent = creepyLines[i];
+dialog.textContent = creepyLines[i]
 
-let slideIndex = i % slides.length;
+let slideIndex = i % slides.length
 
-slides.forEach(s => s.style.opacity = 0);
-slides[slideIndex].style.opacity = 1;
+slides.forEach(s => s.style.opacity = 0)
+slides[slideIndex].style.opacity = 1
 
-await new Promise(r => setTimeout(r,2500));
+await new Promise(r => setTimeout(r,2500))
 
 }
 
-dialog.textContent = "he will find you";
+dialog.textContent = `${playerName}... he will find you`
 
-await new Promise(r => setTimeout(r,3000));
+await new Promise(r => setTimeout(r,3500))
 
-localStorage.setItem("chosenSeen","true");
+localStorage.setItem("chosenSeen","true")
 
-location.reload();
+location.reload()
 
 }
 
