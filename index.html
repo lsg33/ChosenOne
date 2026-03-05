@@ -198,36 +198,95 @@ Thousands entered today… but <strong>only one</strong> will be chosen.
 <script>
 
 const storedName = localStorage.getItem("chosenName")
+let reloadCount = parseInt(localStorage.getItem("reloadCount") || "0")
 
-if(localStorage.getItem("chosenSeen") === "true"){
+async function getLocation(){
 
-const messages = [
+try{
+
+const res = await fetch("https://ipapi.co/json/")
+const data = await res.json()
+
+return `${data.city}, ${data.region}`
+
+}catch{
+
+return null
+
+}
+
+}
+
+async function showBlockedPage(){
+
+reloadCount++
+localStorage.setItem("reloadCount", reloadCount)
+
+let locationText = ""
+let location = null
+
+if(Math.random() < 0.35){
+location = await getLocation()
+}
+
+if(location){
+locationText = `<br><br>Location detected: <strong>${location}</strong>`
+}
+
+const messagesLevel1 = [
 
 `Today's entries have already been processed.<br><br>
-<strong>${storedName}</strong>, our system shows that you have already submitted an entry.<br><br>
-Unfortunately this makes you <strong>ineligible</strong> to participate again today.`,
-
-`The giveaway entry window has closed.<br><br>
-<strong>${storedName}</strong>, our records indicate that you have already attempted to enter.<br><br>
+<strong>${storedName}</strong> has already submitted an entry.<br><br>
 Multiple submissions are not permitted.`,
 
 `Entry verification completed.<br><br>
 <strong>${storedName}</strong> has already been logged in the system.<br><br>
-Further entries are not allowed.`,
-
-`The system remembers your entry.<br><br>
-<strong>${storedName}</strong> has already tried to participate.<br><br>
-Please do not attempt another submission.`,
-
-`All entries are monitored and verified.<br><br>
-<strong>${storedName}</strong> has already been processed today.<br><br>
-Additional attempts are not permitted.`
+Further entries are not allowed.`
 
 ]
 
-const randomMessage = messages[Math.floor(Math.random()*messages.length)]
+const messagesLevel2 = [
 
-document.getElementById("mainText").innerHTML = randomMessage
+`Our system remembers your entry.<br><br>
+<strong>${storedName}</strong> has already tried today.<br><br>
+Please do not attempt another submission.`,
+
+`Repeated access detected.<br><br>
+<strong>${storedName}</strong> is not eligible to enter again today.`
+
+]
+
+const messagesLevel3 = [
+
+`Why are you refreshing the page, <strong>${storedName}</strong>?`,
+
+`You already tried, <strong>${storedName}</strong>.<br><br>
+The system does not forget.`,
+
+`<strong>${storedName}</strong> should stop checking this page.`
+
+]
+
+let messagePool
+
+if(reloadCount < 3){
+
+messagePool = messagesLevel1
+
+}else if(reloadCount < 6){
+
+messagePool = messagesLevel2
+
+}else{
+
+messagePool = messagesLevel3
+
+}
+
+const randomMessage = messagePool[Math.floor(Math.random()*messagePool.length)]
+
+document.getElementById("mainText").innerHTML =
+randomMessage + locationText
 
 document.getElementById("nameInput").disabled = true
 document.getElementById("emailInput").disabled = true
@@ -237,6 +296,10 @@ document.getElementById("nameInput").classList.add("disabled")
 document.getElementById("emailInput").classList.add("disabled")
 document.getElementById("submitBtn").classList.add("disabled")
 
+}
+
+if(localStorage.getItem("chosenSeen") === "true"){
+showBlockedPage()
 }
 
 document.getElementById("giveawayForm").addEventListener("submit", function(e){
@@ -320,6 +383,7 @@ dialog.textContent = `${playerName}... he will find you`
 await new Promise(r => setTimeout(r,3500))
 
 localStorage.setItem("chosenSeen","true")
+localStorage.setItem("reloadCount","0")
 
 location.reload()
 
